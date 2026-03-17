@@ -14,24 +14,18 @@ function App() {
   const API_KEY = '55edaa7c5c3242068bdff75f335324e9'
 
   useEffect(() => {
-    fetchGames()
+    // Each load picks a random page to ensure fresh content
+    const randomPage = Math.floor(Math.random() * 20) + 1
+    fetchGames('', randomPage)
   }, [])
 
-  useEffect(() => {
-    if (selectedGameId) {
-      fetchGameDetails(selectedGameId)
-    } else {
-      setGameDetail(null)
-      setScreenshots([])
-    }
-  }, [selectedGameId])
-
-  const fetchGames = async (query = '') => {
+  const fetchGames = async (query = '', page = 1) => {
     setLoading(true)
     try {
+      // We use a combination of random page and ordering to keep the feed fresh
       const url = query 
         ? `https://api.rawg.io/api/games?key=${API_KEY}&search=${query}&page_size=12`
-        : `https://api.rawg.io/api/games?key=${API_KEY}&ordering=-rating&page_size=12&dates=2023-01-01,2025-12-31`
+        : `https://api.rawg.io/api/games?key=${API_KEY}&ordering=-added&page_size=12&page=${page}`
       
       const response = await fetch(url)
       const data = await response.json()
@@ -43,20 +37,26 @@ function App() {
     }
   }
 
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (search.trim()) {
+      fetchGames(search)
+    } else {
+      const randomPage = Math.floor(Math.random() * 20) + 1
+      fetchGames('', randomPage)
+    }
+  }
+
   const fetchGameDetails = async (id) => {
     setDetailLoading(true)
     try {
-      // Fetch core details
       const detailRes = await fetch(`https://api.rawg.io/api/games/${id}?key=${API_KEY}`)
       const detailData = await detailRes.json()
       setGameDetail(detailData)
 
-      // Fetch screenshots
       const shotRes = await fetch(`https://api.rawg.io/api/games/${id}/screenshots?key=${API_KEY}`)
       const shotData = await shotRes.json()
       setScreenshots(shotData.results || [])
-      
-      // Scroll to top of modal if needed (handled by CSS overflow)
     } catch (error) {
       console.error("Error fetching detail:", error)
     } finally {
@@ -64,14 +64,11 @@ function App() {
     }
   }
 
-  const handleSearch = (e) => {
-    e.preventDefault()
-    if (search.trim()) {
-      fetchGames(search)
-    } else {
-      fetchGames()
+  useEffect(() => {
+    if (selectedGameId) {
+      fetchGameDetails(selectedGameId)
     }
-  }
+  }, [selectedGameId])
 
   const closeDetail = () => {
     setSelectedGameId(null)
@@ -88,7 +85,7 @@ function App() {
       <header className="fade-in">
         <h1 className="hero-title">GameSphere</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontWeight: '300' }}>
-          Explore the world of gaming data internally
+          Real-time dynamic gaming universe
         </p>
         
         <form onSubmit={handleSearch} className="search-box">
@@ -125,15 +122,12 @@ function App() {
                 <div className="card-body">
                   <h3 className="card-title" title={game.name}>{game.name}</h3>
                   <div className="card-meta">
-                    <span>{game.released ? new Date(game.released).getFullYear() : 'TBA'}</span>
+                    <span>{game.released ? new Date(game.released).getFullYear() : 'NEW'}</span>
                     <span>{game.platforms?.[0]?.platform?.name || 'Multi'}</span>
                   </div>
                   <div style={{ marginTop: '1.5rem' }}>
-                     <button 
-                      className="btn btn-primary" 
-                      style={{ width: '100%', justifyContent: 'center' }}
-                    >
-                      View Internally
+                     <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                      Explore Discovery
                      </button>
                   </div>
                 </div>
@@ -142,15 +136,18 @@ function App() {
           ) : (
             <div style={{ textAlign: 'center', gridColumn: '1 / -1', padding: '4rem' }}>
               <h3>No games found for "{search}"</h3>
-              <button onClick={() => {setSearch(''); fetchGames();}} className="btn btn-primary" style={{ marginTop: '1rem' }}>
-                Clear Search
+              <button 
+                onClick={() => {setSearch(''); fetchGames('', Math.floor(Math.random() * 20) + 1);}} 
+                className="btn btn-primary" 
+                style={{ marginTop: '1rem' }}
+              >
+                Refresh Discovery
               </button>
             </div>
           )}
         </div>
       )}
 
-      {/* Internal Game Detail View */}
       {selectedGameId && (
         <div className="detail-overlay overlay-fade-in" onClick={closeDetail}>
           <div className="detail-container modal-slide-up" onClick={(e) => e.stopPropagation()}>
@@ -192,7 +189,7 @@ function App() {
                   </div>
 
                   <div className="screenshot-section">
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.5rem' }}>Screenshots</h3>
+                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.5rem' }}>Gallery</h3>
                     <div className="screenshot-grid">
                       {screenshots.slice(0, 4).map((shot, idx) => (
                         <div key={idx} className="screenshot-item">
@@ -203,7 +200,7 @@ function App() {
                   </div>
                   
                   <div style={{ marginTop: '4rem', textAlign: 'center' }}>
-                     <button className="btn btn-primary" onClick={closeDetail}>Return to Gallery</button>
+                     <button className="btn btn-primary" onClick={closeDetail}>Back to Updates</button>
                   </div>
                 </div>
               </>
