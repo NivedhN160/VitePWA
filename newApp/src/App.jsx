@@ -68,16 +68,22 @@ function App() {
           {games.length > 0 ? (
             games.map(game => (
               <article key={game.id} className="card">
-                <img 
-                  src={game.background_image || 'https://via.placeholder.com/600x400?text=No+Image+Available'} 
-                  alt={game.name} 
-                  className="card-img" 
-                />
+                <div className="card-img-container">
+                  <img 
+                    src={game.background_image || 'https://via.placeholder.com/600x400?text=No+Image+Available'} 
+                    alt={game.name} 
+                    className="card-img" 
+                  />
+                  <div className="rating-badge">
+                    <span>★</span>
+                    <span>{game.rating || 'N/A'}</span>
+                  </div>
+                </div>
                 <div className="card-body">
                   <h3 className="card-title" title={game.name}>{game.name}</h3>
                   <div className="card-meta">
                     <span>{game.released ? new Date(game.released).getFullYear() : 'TBA'}</span>
-                    <span className="rating">★ {game.rating || 'N/A'}</span>
+                    <span>{game.platforms?.[0]?.platform?.name || 'Multi'}</span>
                   </div>
                   <div style={{ marginTop: '1.5rem' }}>
                      <a 
