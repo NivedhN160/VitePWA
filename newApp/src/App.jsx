@@ -11,7 +11,7 @@ function App() {
   const [screenshots, setScreenshots] = useState([])
   const [detailLoading, setDetailLoading] = useState(false)
 
-  const API_KEY = '55edaa7c5c3242068bdff75f335324e9'
+  const API_KEY = import.meta.env.VITE_RAWG_API_KEY
 
   useEffect(() => {
     // Each load picks a random page to ensure fresh content
